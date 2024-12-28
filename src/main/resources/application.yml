@@ -6,6 +6,13 @@ server:
   shutdown: graceful
 
 spring:
+  session:
+    store-type: redis
+    timeout: 10m
+    redis:
+      namespace: polar:edge
+  config:
+    import: "optional:configserver:"
   application:
     name: edge-service
   lifecycle:
@@ -28,7 +35,7 @@ spring:
                 name: catalogCircuitBreaker
                 fallBackUri: forward:/catalog-fallback
         - id: order-route
-          uri: $ORDER_SERVICE_URL:http://localhost:9002}/orders
+          uri: ${ORDER_SERVICE_URL:http://localhost:9002}/orders
           predicates:
              - Path=/orders/**
           filters:
@@ -43,6 +50,7 @@ spring:
           max-idle-time: 15s
           max-life-time: 60s
       default-filters:
+        - SaveSession
         - name: Retry
           args:
             retries: 3
@@ -54,6 +62,12 @@ spring:
               maxBackoff: 500ms
               factor: 2
               basedOnPreviousValue: false
+        - name: RequestRateLimiter
+          args:
+            redis-rate-limiter:
+              replenishRate: 10
+              burstCapacity: 20
+              requestedTokens: 1
 resilience4j:
   circuitbreaker:
     configs:
