@@ -86,3 +86,13 @@ services:
     container_name: "polar-redis"
     ports:
       - 6379:6379
+
+  polar-keycloak:
+    image: quay.io/keycloak/keycloak:19.0
+    container_name: "polar-keycloak"
+    command: start-dev
+    environment:
+      - KEYCLOAK_ADMIN=user
+      - KEYCLOAK_ADMIN_PASSWORD=password
+    ports:
+      - 8080:8080
